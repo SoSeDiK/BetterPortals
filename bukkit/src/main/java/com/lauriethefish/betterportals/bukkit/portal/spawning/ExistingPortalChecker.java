@@ -155,11 +155,15 @@ public class ExistingPortalChecker implements IChunkChecker    {
                 if(isFrame) {
                     if(spawnConfig.isPortalFrame(type)) {
                         validBlocks++;
+                    } else if(!spawnConfig.isReplaceable(type)) {
+                        return false;
                     }
                 }   else    {
                     // Interior blocks can only be air or portal blocks
                     if(type == Material.AIR || type == MaterialUtil.PORTAL_MATERIAL) {
                         validBlocks++;
+                    } else if(!spawnConfig.isReplaceable(type)) {
+                        return false;
                     }
                 }
             }

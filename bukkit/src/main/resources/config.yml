@@ -121,8 +121,19 @@ worldConnections: {}
 # This specifies the amount of time allowed per-tick (in milliseconds)
 allowedSpawnTimePerTick: 35
 
-# Blocks that can be used in portal frames. Defaults to "OBSIDIAN" if empty.
+# Blocks that can be used in portal frames (defaults to "OBSIDIAN" if empty)
 portalFrameBlocks: []
+
+# Blocks that can be replaced by the obsidian when forming the portal frame (always includes air by default)
+replaceableBlocks:
+  - "STONE"
+  - "COBBLESTONE"
+  - "DIRT"
+  - "GRAVEL"
+  - "NETHERRACK"
+
+# Whether "replaceableBlocks" option should instead blacklist specified blocks from being replaced
+replaceableBlocksBlacklist: false
 
 # Allows for setting a proxy server to allow cross-server portals
 proxy:

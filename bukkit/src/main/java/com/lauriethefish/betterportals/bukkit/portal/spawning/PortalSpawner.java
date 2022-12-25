@@ -17,6 +17,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -63,23 +65,25 @@ public class PortalSpawner implements IPortalSpawner {
         startAsyncCheck(context, existingPortalChecker, (existingPosition) -> {
             if(existingPosition != null) {
                 logger.fine("Creating with existing position");
-                spawnPortal(existingPosition, originPosition);
-                onFinish.accept(existingPosition);
-            }   else    {
-                logger.fine("Searching for new position");
-                // Find a new spawn position if there aren't any valid existing ones
-                startAsyncCheck(context, newPortalChecker, (newSpawnPos) -> {
-                    // Give up and just use the preferred destination position, which is probably in a wall, but it's our only real option
-                    if(newSpawnPos == null) {
-                        logger.warning("Unable to find destination for a portal. This shouldn't happen really");
-                        newSpawnPos = new PortalSpawnPosition(destinationPosition, originSize, PortalDirection.EAST);
-                    }
-
-                    logger.fine("Creating with new position");
-                    spawnPortal(newSpawnPos, originPosition);
-                    onFinish.accept(newSpawnPos);
-                });
+                if(spawnPortal(existingPosition, originPosition)) {
+                    onFinish.accept(existingPosition);
+                    return;
+                }
+                logger.fine("Existing position is obstructed, invalidating");
             }
+            logger.fine("Searching for new position");
+            // Find a new spawn position if there aren't any valid existing ones
+            startAsyncCheck(context, newPortalChecker, (newSpawnPos) -> {
+                // Give up and just use the preferred destination position, which is probably in a wall, but it's our only real option
+                if(newSpawnPos == null) {
+                    logger.warning("Unable to find destination for a portal. This shouldn't happen really");
+                    newSpawnPos = new PortalSpawnPosition(destinationPosition, originSize, PortalDirection.EAST);
+                }
+
+                logger.fine("Creating with new position");
+                spawnPortal(newSpawnPos, originPosition);
+                onFinish.accept(newSpawnPos);
+            });
         });
 
         return true;
@@ -115,9 +119,10 @@ public class PortalSpawner implements IPortalSpawner {
      * Spawns a portal at the specified spawn position, with the 4 corners filled and the portal blocks.
      * <br>Will also perform the dimension blend if it's enabled.
      * @param position Position to spawn the portal at
+     * @return whether portal was spawned
      */
     @SuppressWarnings("deprecation")
-    private void spawnPortal(PortalSpawnPosition position, Location originPos) {
+    private boolean spawnPortal(PortalSpawnPosition position, Location originPos) {
         if(spawnConfig.isDimensionBlendEnabled()) {
             dimensionBlendManager.performBlend(originPos.clone().add(position.getSize().clone().multiply(0.5)), position.getPosition());
         }
@@ -125,6 +130,7 @@ public class PortalSpawner implements IPortalSpawner {
         Vector size = position.getSize().clone().add(new Vector(1.0, 1.0, 0.0));
         PortalDirection direction = position.getDirection();
 
+        List<BlockState> statesToUpdate = new ArrayList<>();
         for(int x = 0; x <= size.getX(); x++) {
             for(int y = 0; y <= size.getY(); y++) {
                 Vector frameRelativePos = new Vector(x, y, 0.0);
@@ -134,19 +140,38 @@ public class PortalSpawner implements IPortalSpawner {
 
                 // This is done with a BlockState to avoid updating physics, since otherwise our portal blocks would get removed during creation
                 BlockState state = blockPos.getBlock().getState();
+                Material currentFrame = state.getType();
 
-                // Don't replace valid portal frames
-                if(isFrameBlock && spawnConfig.isPortalFrame(state.getType())) continue;
-
-                state.setType(isFrameBlock ? Material.OBSIDIAN : MaterialUtil.PORTAL_MATERIAL);
-
-                // Make sure to rotate the portal blocks for NORTH/SOUTH portals
-                if(!isFrameBlock && (direction == PortalDirection.EAST || direction == PortalDirection.WEST)) {
-                    state.setRawData((byte) 2);
+                if(isFrameBlock) {
+                    // Don't replace non-air corner blocks
+                    if(((x == 0 && y == 0) || (x == size.getX() && y == 0) || (x == 0 && y == size.getY()) || (x == size.getX() && y == size.getY())) && !MaterialUtil.isAir(currentFrame)) {
+                        continue;
+                    }
+                    // Don't replace valid portal frames
+                    if(spawnConfig.isPortalFrame(currentFrame)) {
+                        continue;
+                    }
+                    // Something's changed in the old frame, invalidate
+                    if(!spawnConfig.isReplaceable(currentFrame)) {
+                        return false;
+                    }
+                    state.setType(Material.OBSIDIAN);
+                } else {
+                    // Something's blocking inner portal space, invalidate
+                    if(!MaterialUtil.isAir(currentFrame) && currentFrame != MaterialUtil.PORTAL_MATERIAL && !spawnConfig.isReplaceable(currentFrame)) {
+                        return false;
+                    }
+                    state.setType(MaterialUtil.PORTAL_MATERIAL);
+                    // Make sure to rotate the portal blocks for NORTH/SOUTH portals
+                    if(direction == PortalDirection.EAST || direction == PortalDirection.WEST) {
+                        state.setRawData((byte) 2);
+                    }
                 }
 
-                state.update(true, false);
+                statesToUpdate.add(state);
             }
         }
+        statesToUpdate.forEach(state -> state.update(true, false));
+        return true;
     }
 }
