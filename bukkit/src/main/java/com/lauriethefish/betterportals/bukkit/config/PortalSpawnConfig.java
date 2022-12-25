@@ -33,8 +33,8 @@ public class PortalSpawnConfig {
     private Set<World> disabledWorlds;
 
     private Set<Material> portalFrameBlocks; // Blocks that can be used as a portal frame
-    private Set<Material> replaceableBlocks; // Blocks that can be replaced upon creating a portal frame
-    private boolean replaceableBlocksBlacklist; // Whether "replaceableBlocks" should act as a blacklist
+    private Set<Material> preservableBlocks; // Blocks that can be replaced upon creating a portal frame
+    private boolean preservableBlocksWhitelist; // Whether "replaceableBlocks" should act as a blacklist
 
     @Getter private Vector maxPortalSize; // Maximum size of natural/nether portals
     @Getter private int minimumPortalSpawnDistance; // How close portals will spawn to each other
@@ -112,16 +112,16 @@ public class PortalSpawnConfig {
             portalFrameBlocks.add(Material.OBSIDIAN);
         }
 
-        replaceableBlocks = new HashSet<>();
-        file.getStringList("replaceableBlocks").forEach(blockType -> {
+        preservableBlocks = new HashSet<>();
+        file.getStringList("preservableBlocks").forEach(blockType -> {
             Material type = Material.getMaterial(blockType.toUpperCase());
             if(type != null && type.isBlock()) {
-                replaceableBlocks.add(type);
+                preservableBlocks.add(type);
             } else {
-                logger.warning("Unknown replaceable block Material for portal spawning: " + type);
+                logger.warning("Unknown preservable block Material for portal spawning: " + type);
             }
         });
-        replaceableBlocksBlacklist = file.getBoolean("replaceableBlocksBlacklist", false);
+        preservableBlocksWhitelist = file.getBoolean("preservableBlocksWhitelist", false);
     }
 
     private void generateDefaultLinks() {
@@ -159,6 +159,6 @@ public class PortalSpawnConfig {
     }
 
     public boolean isReplaceable(@NotNull Material type) {
-        return replaceableBlocksBlacklist != replaceableBlocks.contains(type);
+        return preservableBlocksWhitelist == preservableBlocks.contains(type);
     }
 }

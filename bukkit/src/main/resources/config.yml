@@ -124,16 +124,19 @@ allowedSpawnTimePerTick: 35
 # Blocks that can be used in portal frames (defaults to "OBSIDIAN" if empty)
 portalFrameBlocks: []
 
-# Blocks that can be replaced by the obsidian when forming the portal frame (always includes air by default)
-replaceableBlocks:
-  - "STONE"
-  - "COBBLESTONE"
-  - "DIRT"
-  - "GRAVEL"
-  - "NETHERRACK"
+# Blocks that can't be replaced when forming the portal frame
+preservableBlocks:
+  - "BEDROCK"
+  - "BARRIER"
+  - "COMMAND_BLOCK"
+  - "END_PORTAL_FRAME"
+  - "CHEST"
+  - "TRAPPED_CHEST"
+  - "ENDER_CHEST"
+  - "BARREL"
 
-# Whether "replaceableBlocks" option should instead blacklist specified blocks from being replaced
-replaceableBlocksBlacklist: false
+# Whether "preservableBlocks" option should instead act as a whitelist (so that only the listed blocks can be replaced)
+preservableBlocksWhitelist: false
 
 # Allows for setting a proxy server to allow cross-server portals
 proxy:
