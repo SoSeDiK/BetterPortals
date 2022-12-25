@@ -68,7 +68,7 @@ public class SpawningEvents implements Listener {
                 block = (Block) obj;
             }
 
-            if(block.getType() == Material.OBSIDIAN) {
+            if(spawnConfig.isPortalFrame(block.getType())) {
                 continue;
             }
 

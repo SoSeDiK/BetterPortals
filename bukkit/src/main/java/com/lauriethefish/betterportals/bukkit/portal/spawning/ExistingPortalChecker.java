@@ -66,12 +66,12 @@ public class ExistingPortalChecker implements IChunkChecker    {
         }
 
         int frameSize = context.getSize().getBlockY() + 2;
-        Collection<Location> obsidianBlocks = searchForObsidianBlocks(chunk, frameSize, context.getWorldLink());
+        Collection<Location> portalBlocks = searchForPortalBlocks(chunk, frameSize, context.getWorldLink());
 
         PortalSpawnPosition closestPosition = null;
         double closestDistance = Double.POSITIVE_INFINITY;
 
-        for(Location block : obsidianBlocks) {
+        for(Location block : portalBlocks) {
             // Because the above may only check every frameSize(th) block, we have to check the surrounding areas for portals here
             // This ends up being faster, since most chunks have very little obsidian in them
             for(int yOffset = -frameSize; yOffset <= frameSize; yOffset++) {
@@ -102,7 +102,7 @@ public class ExistingPortalChecker implements IChunkChecker    {
      * @param worldLink Used for the minimum and maximum spawn height
      * @return The list of obsidian blocks
      */
-    private Collection<Location> searchForObsidianBlocks(ChunkPosition chunkPos, int yIncrement, WorldLink worldLink) {
+    private Collection<Location> searchForPortalBlocks(ChunkPosition chunkPos, int yIncrement, WorldLink worldLink) {
         Collection<Location> result = new ArrayList<>();
 
         Chunk chunk = chunkPos.getChunk();
@@ -113,7 +113,7 @@ public class ExistingPortalChecker implements IChunkChecker    {
             for(int z = 0; z < 16; z += 1) {
                 for(int x = 0; x < 16; x += 1) {
                     Block block = chunk.getBlock(x, y, z);
-                    if(block.getType() == Material.OBSIDIAN) {
+                    if(spawnConfig.isPortalFrame(block.getType())) {
                         result.add(block.getLocation());
                     }
                 }
@@ -152,12 +152,12 @@ public class ExistingPortalChecker implements IChunkChecker    {
 
                 blocks++;
                 Material type = blockPos.getBlock().getType();
-                // Frame blocks must only be obsidian, interior blocks can be air or portal blocks
                 if(isFrame) {
-                    if(type == Material.OBSIDIAN) {
+                    if(spawnConfig.isPortalFrame(type)) {
                         validBlocks++;
                     }
                 }   else    {
+                    // Interior blocks can only be air or portal blocks
                     if(type == Material.AIR || type == MaterialUtil.PORTAL_MATERIAL) {
                         validBlocks++;
                     }

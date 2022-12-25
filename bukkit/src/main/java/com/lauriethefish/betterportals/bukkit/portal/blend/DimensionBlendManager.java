@@ -79,6 +79,9 @@ public class DimensionBlendManager implements IDimensionBlendManager    {
                             break;
                         }
                     }
+                    if(!skip && (spawnConfig.isPortalFrame(originType) || spawnConfig.isPortalFrame(destType))) {
+                        skip = true;
+                    }
 
                     if(skip) {continue;}
 

@@ -121,6 +121,9 @@ worldConnections: {}
 # This specifies the amount of time allowed per-tick (in milliseconds)
 allowedSpawnTimePerTick: 35
 
+# Blocks that can be used in portal frames. Defaults to "OBSIDIAN" if empty.
+portalFrameBlocks: []
+
 # Allows for setting a proxy server to allow cross-server portals
 proxy:
   enableProxy: false

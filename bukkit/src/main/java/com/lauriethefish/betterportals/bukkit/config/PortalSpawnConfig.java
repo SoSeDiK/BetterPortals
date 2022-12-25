@@ -5,6 +5,7 @@ import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -30,6 +31,7 @@ public class PortalSpawnConfig {
 
     private Map<World, WorldLink> worldLinks;
     private Set<World> disabledWorlds;
+    private Set<Material> portalFrameBlocks; // Blocks that can be used as a portal frame
 
     @Getter private Vector maxPortalSize; // Maximum size of natural/nether portals
     @Getter private int minimumPortalSpawnDistance; // How close portals will spawn to each other
@@ -93,6 +95,19 @@ public class PortalSpawnConfig {
 
         minimumPortalSpawnDistance = file.getInt("minimumPortalSpawnDistance");
         allowedSpawnTimePerTick = file.getDouble("allowedSpawnTimePerTick");
+
+        portalFrameBlocks = new HashSet<>();
+        file.getStringList("portalFrameBlocks").forEach(blockType -> {
+            Material frameType = Material.getMaterial(blockType.toUpperCase());
+            if(frameType != null && frameType.isBlock()) {
+                portalFrameBlocks.add(frameType);
+            } else {
+                logger.warning("Unknown block Material for portal frame: " + frameType);
+            }
+        });
+        if(portalFrameBlocks.isEmpty()) {
+            portalFrameBlocks.add(Material.OBSIDIAN);
+        }
     }
 
     private void generateDefaultLinks() {
@@ -123,5 +138,9 @@ public class PortalSpawnConfig {
 
     public @Nullable WorldLink getWorldLink(@NotNull World originWorld) {
         return worldLinks.get(originWorld);
+    }
+
+    public boolean isPortalFrame(@NotNull Material type) {
+        return portalFrameBlocks.contains(type);
     }
 }
