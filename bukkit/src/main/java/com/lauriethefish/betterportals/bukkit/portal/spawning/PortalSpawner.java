@@ -26,7 +26,7 @@ public class PortalSpawner implements IPortalSpawner {
     private static final double BORDER_PADDING = 10.0;
 
     private final JavaPlugin pl;
-    private final PortalSpawnConfig config;
+    private final PortalSpawnConfig spawnConfig;
     private final Logger logger;
 
     private final ExistingPortalChecker existingPortalChecker;
@@ -34,9 +34,9 @@ public class PortalSpawner implements IPortalSpawner {
     private final IDimensionBlendManager dimensionBlendManager;
 
     @Inject
-    public PortalSpawner(JavaPlugin pl, PortalSpawnConfig config, Logger logger, ExistingPortalChecker existingPortalChecker, NewPortalChecker newPortalChecker, IDimensionBlendManager dimensionBlendManager) {
+    public PortalSpawner(JavaPlugin pl, PortalSpawnConfig spawnConfig, Logger logger, ExistingPortalChecker existingPortalChecker, NewPortalChecker newPortalChecker, IDimensionBlendManager dimensionBlendManager) {
         this.pl = pl;
-        this.config = config;
+        this.spawnConfig = spawnConfig;
         this.logger = logger;
         this.existingPortalChecker = existingPortalChecker;
         this.newPortalChecker = newPortalChecker;
@@ -48,7 +48,7 @@ public class PortalSpawner implements IPortalSpawner {
         World originWorld = originPosition.getWorld();
         assert originWorld != null;
 
-        WorldLink link = config.getWorldLink(originWorld);
+        WorldLink link = spawnConfig.getWorldLink(originWorld);
         if(link == null) {
             logger.fine("Unable to find world link for lit portal at origin position %s with size %s", originPosition, originSize);
             return false;
@@ -87,7 +87,7 @@ public class PortalSpawner implements IPortalSpawner {
 
     // Portal spawn checks are done over a number of ticks to avoid slowing down the server
     private void startAsyncCheck(PortalSpawningContext context, IChunkChecker chunkChecker, Consumer<PortalSpawnPosition> onFinish) {
-        new AsyncPortalChecker(context, chunkChecker, onFinish, pl, logger, config);
+        new AsyncPortalChecker(context, chunkChecker, onFinish, pl, logger, spawnConfig);
     }
 
     /**
@@ -118,7 +118,7 @@ public class PortalSpawner implements IPortalSpawner {
      */
     @SuppressWarnings("deprecation")
     private void spawnPortal(PortalSpawnPosition position, Location originPos) {
-        if(config.isDimensionBlendEnabled()) {
+        if(spawnConfig.isDimensionBlendEnabled()) {
             dimensionBlendManager.performBlend(originPos.clone().add(position.getSize().clone().multiply(0.5)), position.getPosition());
         }
 
@@ -134,7 +134,12 @@ public class PortalSpawner implements IPortalSpawner {
 
                 // This is done with a BlockState to avoid updating physics, since otherwise our portal blocks would get removed during creation
                 BlockState state = blockPos.getBlock().getState();
+
+                // Don't replace valid portal frames
+                if(isFrameBlock && spawnConfig.isPortalFrame(state.getType())) continue;
+
                 state.setType(isFrameBlock ? Material.OBSIDIAN : MaterialUtil.PORTAL_MATERIAL);
+
                 // Make sure to rotate the portal blocks for NORTH/SOUTH portals
                 if(!isFrameBlock && (direction == PortalDirection.EAST || direction == PortalDirection.WEST)) {
                     state.setRawData((byte) 2);
