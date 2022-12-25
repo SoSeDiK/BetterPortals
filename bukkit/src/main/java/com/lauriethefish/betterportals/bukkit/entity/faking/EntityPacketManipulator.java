@@ -290,8 +290,13 @@ public class EntityPacketManipulator implements IEntityPacketManipulator {
 
         packet.getIntegers().write(0, tracker.getEntityId());
 
-        WrappedDataWatcher dataWatcher = EntityUtil.getActualDataWatcher(tracker.getEntity()); // Use the Entity's actual data watcher, not ProtocolLib's method which gives us a dummy
-        packet.getWatchableCollectionModifier().write(0, dataWatcher.getWatchableObjects());
+        if (VersionUtil.isMcVersionAtLeast("1.19.3")) {
+            List<WrappedDataValue> wrappedDataValues = EntityUtil.getActualWrappedDataValues(tracker.getEntity());
+            packet.getDataValueCollectionModifier().write(0, wrappedDataValues);
+        } else {
+            WrappedDataWatcher dataWatcher = EntityUtil.getActualDataWatcher(tracker.getEntity());
+            packet.getWatchableCollectionModifier().write(0, dataWatcher.getWatchableObjects());
+        }
 
         sendPacket(packet, players);
     }
@@ -382,12 +387,8 @@ public class EntityPacketManipulator implements IEntityPacketManipulator {
 
     private void sendPacket(PacketContainer packet, Collection<Player> players) {
         ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
-        try {
-            for (Player player : players) {
-                protocolManager.sendServerPacket(player, packet);
-            }
-        }   catch(InvocationTargetException ex) {
-            throw new RuntimeException("Failed to send packet", ex);
+        for (Player player : players) {
+            protocolManager.sendServerPacket(player, packet);
         }
     }
 }

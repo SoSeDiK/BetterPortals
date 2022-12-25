@@ -165,12 +165,8 @@ public class PlayerBlockView implements IPlayerBlockView   {
 
             // Show the player the changed states
             multiBlockChangeManager.sendChanges();
-            try {
-                for (PacketContainer packet : queuedTileEntityUpdates) {
-                    ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
-                }
-            } catch (InvocationTargetException ex) {
-                throw new RuntimeException(ex);
+            for (PacketContainer packet : queuedTileEntityUpdates) {
+                ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
             }
 
             // Removed due to being unreasonably frequent

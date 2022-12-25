@@ -13,12 +13,12 @@ repositories {
 dependencies {
     implementation 'org.bstats:bstats-bukkit:3.0.0'
     testImplementation 'com.github.seeseemelk:MockBukkit-v1.17:1.13.0'
-    testImplementation 'com.comphenix.protocol:ProtocolLib:4.8.0'
+    testImplementation 'com.comphenix.protocol:ProtocolLib:5.0.0-SNAPSHOT'
 
     implementation project(':shared')
     implementation project(':api')
-    compileOnly 'com.comphenix.protocol:ProtocolLib:4.8.0'
-    compileOnly 'org.spigotmc:spigot-api:1.19-R0.1-SNAPSHOT'
+    compileOnly 'com.comphenix.protocol:ProtocolLib:5.0.0-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT'
 }
 
 bukkit {

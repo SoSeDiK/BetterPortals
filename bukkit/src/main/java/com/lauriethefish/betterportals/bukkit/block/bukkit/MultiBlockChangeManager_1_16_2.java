@@ -90,11 +90,7 @@ public class MultiBlockChangeManager_1_16_2 implements IMultiBlockChangeManager 
             packet.getBlockDataArrays().writeSafely(0, data);
             packet.getShortArrays().writeSafely(0, positions);
 
-            try {
-                ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
-            }   catch(InvocationTargetException ex) {
-                ex.printStackTrace();
-            }
+            ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
         }
     }
 }
