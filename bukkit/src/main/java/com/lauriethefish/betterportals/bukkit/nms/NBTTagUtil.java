@@ -36,7 +36,7 @@ public class NBTTagUtil {
         NBT_BASE = ReflectionUtil.findClass("net.minecraft.nbt.NBTBase");
 
         if (VersionUtil.isMcVersionAtLeast("1.19.0")) {
-            GET_TAG = ReflectionUtil.findMethod(ITEM_STACK, "u");
+            GET_TAG = VersionUtil.isMcVersionAtLeast("1.20.0") ? ReflectionUtil.findMethod(ITEM_STACK, "v") : ReflectionUtil.findMethod(ITEM_STACK, "u");
             TAG_SET = ReflectionUtil.findMethod(NBT_TAG_COMPOUND, "a", String.class, NBT_BASE);
             GET_STRING = ReflectionUtil.findMethod(NBT_TAG_COMPOUND, "l", String.class);
         } else if (VersionUtil.isMcVersionAtLeast("1.18.0")) {
